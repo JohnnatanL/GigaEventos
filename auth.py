@@ -14,3 +14,6 @@ def conecta_supabase():
         }
     conn = psycopg2.connect(**conn_info)
     return conn
+
+def nada():
+    return 0
