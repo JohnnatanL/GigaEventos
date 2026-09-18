@@ -220,6 +220,79 @@ document.getElementById('b').onclick=function(){{
 </script>""", height=440)
 
 
+def caixa_surpresa(premio, todos):
+    p, t = json.dumps(premio), json.dumps(todos)
+    components.html(f"""
+<div style="font-family:Montserrat,sans-serif;text-align:center;color:#fff">
+  <p style="color:#9fb0e8;margin:0 0 14px">Escolha uma caixa 👇</p>
+  <div id="cx" style="display:flex;gap:14px;justify-content:center"></div>
+  <div id="res" style="margin-top:18px;opacity:0;transition:.6s">
+    <div style="font-size:13px;letter-spacing:2px;color:#9fb0e8">VOCÊ GANHOU</div>
+    <div id="premio" style="font-size:26px;font-weight:800;color:#1FE36B"></div>
+  </div>
+</div>
+<style>
+.box{{width:96px;height:110px;border-radius:14px;cursor:pointer;position:relative;
+  background:linear-gradient(160deg,#0A2BD6,#11B76B);box-shadow:0 6px 18px #0008;transition:transform .3s,opacity .5s;
+  display:flex;align-items:center;justify-content:center;font-size:44px}}
+.box:hover{{transform:translateY(-6px) scale(1.04)}}
+.box.aberta{{animation:abre .6s forwards}} .box.outra{{opacity:.35;cursor:default}}
+.box small{{position:absolute;bottom:-38px;left:0;right:0;font-size:11px;color:#9fb0e8;opacity:0;transition:.5s}}
+.box.outra small{{opacity:1}}
+@keyframes abre{{0%{{transform:rotate(0)}}25%{{transform:rotate(-8deg)}}50%{{transform:rotate(8deg)}}100%{{transform:scale(1.12)}}}}
+</style>
+<script>
+const premio={p}, todos={t};
+document.getElementById('premio').textContent=premio;
+const outros=todos.filter(x=>x!==premio); const cx=document.getElementById('cx'); let feito=false;
+for(let i=0;i<3;i++){{
+  const b=document.createElement('div');b.className='box';b.innerHTML='🎁<small></small>';cx.appendChild(b);
+  b.onclick=()=>{{ if(feito)return; feito=true; let k=0;
+    b.classList.add('aberta'); setTimeout(()=>{{b.firstChild.textContent='🎉';document.getElementById('res').style.opacity=1}},600);
+    [...cx.children].forEach(o=>{{ if(o===b)return; o.classList.add('outra');
+      o.querySelector('small').textContent=outros.length?outros[(k++)%outros.length]:premio; }});
+  }};
+}}
+</script>""", height=300)
+
+
+def caca_niquel(premio):
+    p = json.dumps(premio)
+    components.html(f"""
+<div style="font-family:Montserrat,sans-serif;text-align:center;color:#fff">
+  <div style="display:inline-flex;gap:10px;padding:16px;border-radius:20px;
+       background:linear-gradient(120deg,#0A2BD6,#11B76B);box-shadow:0 0 30px #1FE36B55">
+    <div class="r"><div class="f" id="r0"></div></div>
+    <div class="r"><div class="f" id="r1"></div></div>
+    <div class="r"><div class="f" id="r2"></div></div>
+  </div><br>
+  <button id="b" style="background:#1FE36B;color:#070B24;border:0;border-radius:999px;padding:12px 44px;
+     font:800 16px Montserrat;cursor:pointer;margin-top:16px">PUXAR 🎰</button>
+  <div id="res" style="margin-top:16px;opacity:0;transition:.6s">
+    <div style="font-size:13px;letter-spacing:2px;color:#9fb0e8">JACKPOT! VOCÊ GANHOU</div>
+    <div id="premio" style="font-size:26px;font-weight:800;color:#1FE36B"></div>
+  </div>
+</div>
+<style>
+.r{{width:78px;height:90px;overflow:hidden;background:#070B24;border-radius:12px}}
+.f{{display:flex;flex-direction:column}} .f div{{height:90px;display:flex;align-items:center;justify-content:center;font-size:44px}}
+</style>
+<script>
+document.getElementById('premio').textContent={p};
+const sim=['📶','🚀','⚡','📡','💚','🏢'], alvo='📶', N=24;
+for(let i=0;i<3;i++){{ const f=document.getElementById('r'+i);
+  let h=''; for(let k=0;k<N;k++) h+='<div>'+sim[Math.floor(Math.random()*sim.length)]+'</div>';
+  f.innerHTML=h+'<div>'+alvo+'</div>'; }}
+document.getElementById('b').onclick=function(){{
+  this.disabled=true;this.style.opacity=.4;
+  for(let i=0;i<3;i++){{ const f=document.getElementById('r'+i);
+    f.style.transition=`transform ${{1.6+i*0.7}}s cubic-bezier(.15,.85,.25,1)`;
+    f.style.transform=`translateY(-${{N*90}}px)`; }}
+  setTimeout(()=>document.getElementById('res').style.opacity=1,3200);
+}};
+</script>""", height=330)
+
+
 # ---------- abas ----------
 aba_premios, aba_forms, aba_jogar = st.tabs(["🎁 Prêmios", "📝 Cadastro", "🎮 Jogar"])
 
@@ -325,7 +398,8 @@ with aba_forms:
                 st.error(f"Erro ao salvar: {e}")
 
 # ===== JOGAR =====
-JOGOS = {"Raspadinha": "🎟️", "Teste de velocidade": "🚀", "Roleta": "🎡"}
+JOGOS = {"Raspadinha": "🎟️", "Teste de velocidade": "🚀", "Roleta": "🎡",
+         "Caixa surpresa": "🎁", "Caça-níquel": "🎰"}
 
 with aba_jogar:
     contato = st.session_state.get("contato")
@@ -337,14 +411,19 @@ with aba_jogar:
             raspadinha(premio)
         elif jogo == "Teste de velocidade":
             velocimetro(premio)
-        else:
+        elif jogo == "Roleta":
             roleta(premio, todos)
+        elif jogo == "Caixa surpresa":
+            caixa_surpresa(premio, todos)
+        else:
+            caca_niquel(premio)
         if st.button("Jogar de novo"):
             st.session_state.pop("contato", None); st.session_state.pop("resultado")
             st.rerun()
     else:
         titulo(f"Olá{primeiro}! Escolha seu jogo", "Boa sorte!")
-        for col, (jogo, icone) in zip(st.columns(3), JOGOS.items()):
+        cols = st.columns(3) + st.columns(3)
+        for col, (jogo, icone) in zip(cols, JOGOS.items()):
             if col.button(f"{icone} {jogo}", key=f"jogo_{jogo}"):
                 try:
                     premio, todos = sortear()
