@@ -145,41 +145,49 @@ function check(){{const d=x.getImageData(0,0,320,180).data;let n=0;for(let i=3;i
 </script>""", height=280)
 
 
-def velocimetro(premio):
-    p = json.dumps(premio)
+def velocimetro(premio, todos):
+    p, t = json.dumps(premio), json.dumps(todos)
     components.html(f"""
 <div style="font-family:Montserrat,sans-serif;text-align:center;color:#fff">
   <p style="color:#9fb0e8;margin:0 0 6px">Aperte <b>PARAR</b> para travar a velocidade!</p>
-  <svg viewBox="0 0 300 175" width="320">
-    <path d="M30 150 A120 120 0 0 1 90 46" stroke="#e53935" stroke-width="22" fill="none"/>
-    <path d="M90 46 A120 120 0 0 1 210 46" stroke="#f5a623" stroke-width="22" fill="none"/>
-    <path d="M210 46 A120 120 0 0 1 270 150" stroke="#1FE36B" stroke-width="22" fill="none"/>
-    <g id="n" transform="rotate(-90 150 150)">
-      <line x1="150" y1="150" x2="150" y2="45" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <svg id="s" viewBox="0 0 300 190" width="340">
+    <g id="arcos"></g>
+    <g id="n" transform="rotate(-90 150 160)">
+      <line x1="150" y1="160" x2="150" y2="62" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
     </g>
-    <circle cx="150" cy="150" r="11" fill="#fff"/>
-    <text id="mb" x="150" y="128" text-anchor="middle" fill="#fff" font-size="22" font-weight="800">0 Mb</text>
+    <circle cx="150" cy="160" r="11" fill="#fff"/>
+    <text id="mb" x="150" y="140" text-anchor="middle" fill="#fff" font-size="20" font-weight="800">0 Mb</text>
   </svg><br>
   <button id="b" style="background:#1FE36B;color:#070B24;border:0;border-radius:999px;padding:12px 44px;
      font:800 16px Montserrat;cursor:pointer;margin-top:6px">PARAR</button>
-  <div id="res" style="margin-top:16px;opacity:0;transition:.6s">
-    <div style="font-size:13px;letter-spacing:2px;color:#9fb0e8">VELOCIDADE MÁXIMA! VOCÊ GANHOU</div>
+  <div id="res" style="margin-top:14px;opacity:0;transition:.6s">
+    <div style="font-size:13px;letter-spacing:2px;color:#9fb0e8">VOCÊ GANHOU</div>
     <div id="premio" style="font-size:26px;font-weight:800;color:#1FE36B"></div>
   </div>
 </div>
 <script>
-document.getElementById('premio').textContent = {p};
-const n=document.getElementById('n'),mb=document.getElementById('mb');
-let a=-90,dir=1,run=true;
-function draw(v){{n.setAttribute('transform',`rotate(${{v}} 150 150)`);mb.textContent=Math.round((v+90)/180*1000)+' Mb'}}
-(function loop(){{if(!run)return;a+=dir*4.5;if(a>=90||a<=-90)dir*=-1;draw(a);requestAnimationFrame(loop)}})();
+const todos={t}, premio={p}, n=todos.length, fat=180/n;
+const cores=['#e53935','#f5a623','#1FE36B','#1245C8','#11B76B','#8e44ff'];
+document.getElementById('premio').textContent=premio;
+const g=document.getElementById('arcos'), R=110, cx=150, cy=160;
+function pt(ang,r){{const a=(ang-180)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]}}
+todos.forEach((nome,i)=>{{
+  const[a1,b1]=pt(i*fat,R),[a2,b2]=pt((i+1)*fat,R);
+  g.innerHTML+=`<path d="M${{a1}} ${{b1}} A${{R}} ${{R}} 0 0 1 ${{a2}} ${{b2}}" stroke="${{cores[i%cores.length]}}" stroke-width="24" fill="none"/>`;
+  const[tx,ty]=pt((i+.5)*fat,R+26);
+  g.innerHTML+=`<text x="${{tx}}" y="${{ty}}" text-anchor="middle" fill="#dfe7ff" font-size="${{n>5?8:10}}" font-weight="700">${{nome.length>14?nome.slice(0,13)+'…':nome}}</text>`;
+}});
+const nd=document.getElementById('n'),mb=document.getElementById('mb');
+let a=0,dir=1,run=true;   // a em graus 0..180
+function draw(v){{nd.setAttribute('transform',`rotate(${{v-90}} 150 160)`);mb.textContent=Math.round(v/180*1000)+' Mb'}}
+(function loop(){{if(!run)return;a+=dir*4.5;if(a>=180||a<=0)dir*=-1;draw(a);requestAnimationFrame(loop)}})();
 document.getElementById('b').onclick=function(){{
   if(!run)return;run=false;this.disabled=true;this.style.opacity=.4;
-  const alvo=62+Math.random()*24,ini=a,t0=performance.now();   // sempre termina no verde
-  (function ease(t){{const k=Math.min((t-t0)/1200,1),e=1-Math.pow(1-k,3);draw(ini+(alvo-ini)*e);
+  const i=todos.indexOf(premio), alvo=(i+.5)*fat+(Math.random()-.5)*fat*.6, ini=a, t0=performance.now();
+  (function ease(t){{const k=Math.min((t-t0)/1400,1),e=1-Math.pow(1-k,3);draw(ini+(alvo-ini)*e);
     if(k<1)requestAnimationFrame(ease);else document.getElementById('res').style.opacity=1}})(t0);
 }};
-</script>""", height=330)
+</script>""", height=350)
 
 
 def roleta(premio, todos):
@@ -256,8 +264,8 @@ for(let i=0;i<3;i++){{
 </script>""", height=300)
 
 
-def caca_niquel(premio):
-    p = json.dumps(premio)
+def caca_niquel(premio, todos):
+    p, t = json.dumps(premio), json.dumps(todos)
     components.html(f"""
 <div style="font-family:Montserrat,sans-serif;text-align:center;color:#fff">
   <div style="display:inline-flex;gap:10px;padding:16px;border-radius:20px;
@@ -268,7 +276,8 @@ def caca_niquel(premio):
   </div><br>
   <button id="b" style="background:#1FE36B;color:#070B24;border:0;border-radius:999px;padding:12px 44px;
      font:800 16px Montserrat;cursor:pointer;margin-top:16px">PUXAR 🎰</button>
-  <div id="res" style="margin-top:16px;opacity:0;transition:.6s">
+  <div id="leg" style="display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:14px;font-size:12px;color:#9fb0e8"></div>
+  <div id="res" style="margin-top:14px;opacity:0;transition:.6s">
     <div style="font-size:13px;letter-spacing:2px;color:#9fb0e8">JACKPOT! VOCÊ GANHOU</div>
     <div id="premio" style="font-size:26px;font-weight:800;color:#1FE36B"></div>
   </div>
@@ -278,10 +287,13 @@ def caca_niquel(premio):
 .f{{display:flex;flex-direction:column}} .f div{{height:90px;display:flex;align-items:center;justify-content:center;font-size:44px}}
 </style>
 <script>
-document.getElementById('premio').textContent={p};
-const sim=['📶','🚀','⚡','📡','💚','🏢'], alvo='📶', N=24;
+const todos={t}, premio={p};
+document.getElementById('premio').textContent=premio;
+const sim=['📶','🚀','⚡','📡','💚','🏢','🎁','⭐','💎','🔥'];
+const simb=todos.map((_,i)=>sim[i%sim.length]), alvo=simb[todos.indexOf(premio)], N=24;
+document.getElementById('leg').innerHTML=todos.map((x,i)=>`<span>${{simb[i]}}${{simb[i]}}${{simb[i]}} ${{x}}</span>`).join('');
 for(let i=0;i<3;i++){{ const f=document.getElementById('r'+i);
-  let h=''; for(let k=0;k<N;k++) h+='<div>'+sim[Math.floor(Math.random()*sim.length)]+'</div>';
+  let h=''; for(let k=0;k<N;k++) h+='<div>'+simb[Math.floor(Math.random()*simb.length)]+'</div>';
   f.innerHTML=h+'<div>'+alvo+'</div>'; }}
 document.getElementById('b').onclick=function(){{
   this.disabled=true;this.style.opacity=.4;
@@ -290,7 +302,7 @@ document.getElementById('b').onclick=function(){{
     f.style.transform=`translateY(-${{N*90}}px)`; }}
   setTimeout(()=>document.getElementById('res').style.opacity=1,3200);
 }};
-</script>""", height=330)
+</script>""", height=380)
 
 
 # ---------- abas ----------
@@ -410,13 +422,13 @@ with aba_jogar:
         if jogo == "Raspadinha":
             raspadinha(premio)
         elif jogo == "Teste de velocidade":
-            velocimetro(premio)
+            velocimetro(premio, todos)
         elif jogo == "Roleta":
             roleta(premio, todos)
         elif jogo == "Caixa surpresa":
             caixa_surpresa(premio, todos)
         else:
-            caca_niquel(premio)
+            caca_niquel(premio, todos)
         if st.button("Jogar de novo"):
             st.session_state.pop("contato", None); st.session_state.pop("resultado")
             st.rerun()
